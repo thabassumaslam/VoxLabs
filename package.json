@@ -1,0 +1,19 @@
+{
+  "name": "kitten-desktop-app",
+  "version": "1.0.0",
+  "description": "Local Voice Synthesizer with KittenTTS",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "tts",
+    "voice",
+    "kitten"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "latest"
+  }
+}
