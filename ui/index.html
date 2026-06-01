@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxLabs - Voice Synthesis Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+
+        :root {
+            --bg-base: #0a0a0a;
+            --bg-surface: rgba(20,20,20,0.6);
+            --bg-surface-hover: rgba(35,35,35,0.8);
+            --border-color: #222222;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --glass-blur: blur(16px);
+            --select-bg: #141414;
+            --select-arrow: #888888;
+            --btn-bg: #141417;
+            --btn-text-col: #b0b0b8;
+            --btn-text-shadow: rgba(0,0,0,0.5);
+            --btn-unlit: #222226;
+            --btn-flash-light: #ffffff;
+            --btn-flash-shadow: #55555c;
+            --btn-outer-dark: rgba(0,0,0,0.9);
+            --btn-outer-light: rgba(255,255,255,0.02);
+            --btn-trench-dark: rgba(0,0,0,0.8);
+            --btn-trench-light: rgba(255,255,255,0.04);
+            --btn-core-drop: rgba(0,0,0,0.5);
+            --btn-core-light: rgba(255,255,255,0.05);
+            --btn-core-dark: rgba(0,0,0,0.6);
+        }
+
+        html.light-mode {
+            --bg-base: #f0f0f0;
+            --bg-surface: rgba(255,255,255,0.85);
+            --bg-surface-hover: rgba(240,240,240,1);
+            --border-color: #d0d0d0;
+            --text-primary: #111111;
+            --text-secondary: #666666;
+            --select-bg: #ffffff;
+            --select-arrow: #444444;
+            --btn-bg: #f5f5f7;
+            --btn-text-col: #3a3a40;
+            --btn-text-shadow: rgba(255,255,255,0.8);
+            --btn-unlit: #cfcfda;
+            --btn-flash-light: #ffffff;
+            --btn-flash-shadow: #9a9ab0;
+            --btn-outer-dark: rgba(165,165,180,0.4);
+            --btn-outer-light: rgba(255,255,255,1);
+            --btn-trench-dark: rgba(130,130,145,0.35);
+            --btn-trench-light: rgba(255,255,255,0.8);
+            --btn-core-drop: rgba(0,0,0,0.05);
+            --btn-core-light: rgba(255,255,255,1);
+            --btn-core-dark: rgba(165,165,180,0.2);
+        }
+
+        body {
+            font-family: 'Afacad Flux', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            display: flex; height: 100vh; overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container { display: flex; width: 100%; height: 100%; }
+
+        /* ===== LEFT ===== */
+        .left-section {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 2rem; border-right: 1px solid var(--border-color);
+            overflow-y: auto; gap: 1.5rem; transition: border-color 0.3s;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .logo-section h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; }
+        .logo-section p  { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem; }
+
+        .theme-toggle {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: var(--glass-blur);
+        }
+        .theme-toggle:hover { background: var(--bg-surface-hover); }
+
+        .tabs {
+            display: flex; gap: 1rem;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;
+        }
+        .tab-btn {
+            background: transparent; border: none; color: var(--text-secondary);
+            cursor: pointer; font-size: 1rem; font-weight: 600;
+            padding: 0.5rem 0; transition: all 0.3s ease;
+        }
+        .tab-btn.active { color: var(--text-primary); border-bottom: 2px solid var(--text-primary); }
+        .tab-btn:hover  { color: var(--text-primary); }
+
+        .text-input-panel {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 1rem; backdrop-filter: var(--glass-blur);
+        }
+        textarea {
+            width: 100%; background: transparent; border: none;
+            color: var(--text-primary); font-size: 1rem; font-family: inherit;
+            resize: none; height: 80px; outline: none;
+        }
+        textarea::placeholder { color: var(--text-secondary); opacity: 0.5; }
+
+        .voice-section-title {
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;
+            color: var(--text-secondary); font-weight: 600;
+        }
+        .voice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; }
+        .voice-card {
+            background: transparent; border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 0.8rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .voice-card:hover  { border-color: var(--text-secondary); background: var(--bg-surface-hover); }
+        .voice-card.active { border-color: #00ffcc; background: var(--bg-surface-hover); box-shadow: inset 0 0 0 1px #00ffcc; }
+        .voice-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; gap: 0.4rem; }
+        .voice-name   { font-weight: 600; font-size: 0.9rem; }
+        .voice-gender {
+            font-size: 0.6rem; padding: 0.15rem 0.35rem; border-radius: 4px;
+            background: var(--border-color); color: var(--text-secondary);
+            text-transform: uppercase; font-weight: 600;
+        }
+        .voice-desc { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Projects left list */
+        .projects-panel { display: none; flex-direction: column; gap: 0.8rem; flex: 1; }
+        .projects-panel.active { display: flex; }
+        .create-panel { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; }
+        .create-panel.hidden { display: none; }
+
+        .projects-empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: var(--text-secondary); gap: 0.5rem; opacity: 0.5;
+        }
+        .projects-empty svg { width: 48px; height: 48px; opacity: 0.4; }
+
+        .project-card {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 0.9rem 1.1rem;
+            display: flex; align-items: center; gap: 0.8rem;
+            transition: border-color 0.2s ease;
+        }
+        .project-card.playing { border-color: #00ffcc; }
+        .project-card-info { flex: 1; min-width: 0; }
+        .project-card-name {
+            font-weight: 600; font-size: 0.92rem; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .project-card-meta { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+        .project-play-btn {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(180deg, #e2e2e4 0%, #d4d4d6 100%);
+            border: 1px solid #2a2a2c; color: #000;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0; transition: transform 0.2s;
+        }
+        .project-play-btn:hover { transform: scale(1.08); }
+
+        .project-icon-btn {
+            background: transparent; border: none; color: var(--text-secondary);
+            cursor: pointer; padding: 4px; border-radius: 6px;
+            display: flex; align-items: center; transition: color 0.2s; flex-shrink: 0;
+        }
+        .project-icon-btn:hover           { color: var(--text-primary); }
+        .project-icon-btn.delete:hover    { color: #ff453a; }
+
+        /* ===== RIGHT ===== */
+        .right-section {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 2rem; overflow-y: auto; gap: 1.5rem;
+        }
+
+        .control-panel {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 1.2rem; backdrop-filter: var(--glass-blur);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .control-title {
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;
+            color: var(--text-secondary); font-weight: 600; margin-bottom: 0.8rem;
+        }
+
+        label { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 0.4rem; }
+
+        .select-wrapper { position: relative; margin-bottom: 1rem; }
+        .select-wrapper select {
+            width: 100%; background-color: var(--select-bg); color: var(--text-primary);
+            border: 1px solid var(--border-color); padding: 0.7rem 2.5rem 0.7rem 0.8rem;
+            border-radius: 10px; font-size: 0.9rem; font-family: inherit; outline: none;
+            appearance: none; cursor: pointer; transition: border-color 0.2s, background-color 0.3s;
+        }
+        .select-wrapper::after {
+            content: ''; position: absolute; right: 0.9rem; top: 50%;
+            transform: translateY(-50%); width: 0; height: 0;
+            border-left: 5px solid transparent; border-right: 5px solid transparent;
+            border-top: 6px solid var(--select-arrow); pointer-events: none;
+        }
+        select option { background-color: var(--select-bg); color: var(--text-primary); }
+
+        .slider-wrapper { display: flex; align-items: center; gap: 1rem; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--text-primary); cursor: pointer; margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 3px; cursor: pointer; background: var(--border-color); border-radius: 2px;
+        }
+        .slider-val { font-weight: 600; font-size: 0.9rem; min-width: 3.5ch; }
+
+        /* ===== VISUALIZER ===== */
+        .visualizer-section {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 1.5rem; backdrop-filter: var(--glass-blur);
+            flex: 1; min-height: 0; display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        .audio-wave {
+            display: flex; align-items: center; justify-content: center;
+            gap: 3px; height: 140px; min-height: 140px;
+            width: 100%; overflow: hidden;
+        }
+
+        /* Bar base: collapsed, animation paused */
+        .bar {
+            width: 3px;
+            background: linear-gradient(to top, #6a6a6a, #f2f2f2, #6a6a6a);
+            border-radius: 3px; flex-shrink: 0; transform-origin: center;
+            transform: scaleY(0.15);
+            animation: waveBouce 1s ease-in-out infinite;
+            animation-play-state: paused;
+        }
+
+        @keyframes waveBouce {
+            0%, 100% { transform: scaleY(0.15); }
+            50%       { transform: scaleY(1); }
+        }
+
+        /* When wave container has .playing, bars animate */
+        #wave-container.playing .bar { animation-play-state: running; }
+
+        .playback-controls {
+            display: flex; align-items: center; justify-content: center;
+            gap: 1rem; margin-top: 1rem;
+        }
+        .play-pause-btn {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(180deg, #e2e2e4 0%, #d4d4d6 100%);
+            border: 1px solid #2a2a2c; color: #000;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0; transition: all 0.2s ease;
+        }
+        .play-pause-btn:hover  { transform: scale(1.05); }
+        .play-pause-btn:active { transform: scale(0.95); }
+
+        .time-display {
+            font-size: 0.75rem; color: var(--text-secondary);
+            font-weight: 500; min-width: 65px; text-align: center;
+        }
+        .progress-bar {
+            flex: 1; height: 3px; background: var(--border-color);
+            border-radius: 2px; cursor: pointer; position: relative;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #555, #fff);
+            border-radius: 2px; transition: width 0.1s linear; width: 0%;
+        }
+
+        /* Now Playing info (projects mode) */
+        .now-playing-info {
+            display: none; margin-top: 0.8rem; text-align: center;
+            padding: 0.6rem 1rem; background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color); border-radius: 10px;
+        }
+        .np-name { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .np-meta { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.2rem; }
+        body.projects-mode .now-playing-info.has-track { display: block; }
+
+        /* Download row inside now-playing (projects mode) */
+        .np-download-row {
+            display: flex; gap: 0.6rem; margin-top: 0.7rem;
+        }
+        .np-dl-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+            padding: 0.55rem 0.8rem; border: 1.5px solid var(--border-color); border-radius: 10px;
+            background: var(--bg-surface); color: var(--text-primary);
+            font-family: 'Afacad Flux', sans-serif; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .np-dl-btn:hover { background: var(--bg-surface-hover); border-color: var(--text-primary); }
+
+        /* Download section (create mode) */
+        .download-section { display: flex; gap: 0.8rem; margin-top: 1rem; }
+        .download-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            color: var(--text-primary); font-size: 0.85rem; font-weight: 600;
+            padding: 0.6rem 1rem; border: 1.5px solid var(--border-color); border-radius: 10px;
+            background: var(--bg-surface); cursor: pointer; transition: all 0.3s ease;
+        }
+        .download-btn:hover:not(:disabled) { background: var(--bg-surface-hover); border-color: var(--text-primary); transform: translateY(-1px); }
+        .download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .add-project-btn {
+            width: 100%; margin-top: 0.7rem;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.65rem 1rem; border: 1.5px dashed var(--border-color); border-radius: 10px;
+            background: transparent; color: var(--text-secondary);
+            font-family: 'Afacad Flux', sans-serif; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .add-project-btn:hover:not(:disabled) { border-color: var(--text-primary); color: var(--text-primary); }
+        .add-project-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Generate button */
+        .generate-btn-container { margin-top: 1rem; }
+
+        .btn-wrapper {
+            position: relative; padding: 2px; border-radius: 999px;
+            background: var(--btn-unlit); border: none; outline: none;
+            display: inline-flex; width: 100%; height: 60px;
+            cursor: pointer; overflow: hidden;
+            box-shadow:
+                16px 16px 40px var(--btn-outer-dark),
+                -12px -12px 40px var(--btn-outer-light),
+                inset 2px 2px 5px var(--btn-trench-dark),
+                inset -2px -2px 5px var(--btn-trench-light);
+            transition: transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.2s ease;
+        }
+        .btn-wrapper:hover  { transform: scale(1.005); }
+        .btn-wrapper:active { transform: scale(0.995); }
+        .btn-wrapper:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-wrapper::before {
+            content: ""; position: absolute;
+            width: 180%; height: 1800%; top: -850%; left: -40%;
+            background: conic-gradient(
+                from 90deg,
+                var(--btn-unlit) 0%, var(--btn-unlit) 30%,
+                var(--btn-flash-shadow) 42%, var(--btn-flash-light) 50%,
+                var(--btn-flash-shadow) 58%, var(--btn-unlit) 70%, var(--btn-unlit) 100%
+            );
+            animation: prismSpin 6s linear infinite; z-index: 0;
+        }
+        @keyframes prismSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .btn-inner {
+            position: relative; z-index: 1; width: 100%; height: 100%;
+            background: var(--btn-bg); border-radius: 999px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: background 0.4s ease;
+            box-shadow: 0px 6px 16px var(--btn-core-drop), inset 1.5px 1.5px 3px var(--btn-core-light), inset -1.5px -1.5px 3px var(--btn-core-dark);
+        }
+        .btn-icon { display: flex; align-items: center; justify-content: center; transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94); }
+        .btn-icon svg { width: 22px; height: 22px; fill: var(--btn-text-col); }
+        .btn-wrapper:hover .btn-icon { transform: translateY(-2px); }
+        .btn-wrapper:hover .btn-text { transform: translateY(-1px); }
+        .btn-text {
+            font-family: 'Afacad Flux', sans-serif; font-size: 1.45rem; font-weight: 500;
+            letter-spacing: -0.01em; background-color: var(--btn-text-col); color: transparent;
+            text-shadow: 1px 1px 1.5px var(--btn-text-shadow);
+            -webkit-background-clip: text; background-clip: text;
+            transition: transform 0.3s ease, background-color 0.4s ease; user-select: none;
+        }
+
+        .error-msg { color: #ff453a; font-size: 0.8rem; font-weight: 500; text-align: center; }
+
+        audio { display: none; }
+
+        /* ===== PROJECTS MODE — hide create-only content ===== */
+        body.projects-mode #right-create-content,
+        body.projects-mode #right-create-actions,
+        body.projects-mode #right-create-footer { display: none; }
+
+        #right-projects-content { display: none; }
+        body.projects-mode #right-projects-content { display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Project stats (simplified: just clips saved) */
+        .proj-stats-card {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 1.2rem 1.4rem; backdrop-filter: var(--glass-blur);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .proj-stat-big { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .proj-stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.07em; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #1a1a1f; border: 1px solid #333;
+            border-radius: 20px; padding: 2rem; width: 360px;
+            display: flex; flex-direction: column; gap: 1.2rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+        }
+        html.light-mode .modal { background: #fff; border-color: #d0d0d0; }
+        .modal h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); }
+        .modal-field { display: flex; flex-direction: column; gap: 0.4rem; }
+        .modal-field label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .modal-field input[type=text] {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 0.7rem 0.9rem; color: var(--text-primary);
+            font-family: 'Afacad Flux', sans-serif; font-size: 0.95rem; outline: none; width: 100%;
+        }
+        .modal-field input[type=text]:focus { border-color: var(--text-secondary); }
+        .modal-formats { display: flex; gap: 0.6rem; }
+        .fmt-btn {
+            flex: 1; padding: 0.6rem; border-radius: 10px; border: 1.5px solid var(--border-color);
+            background: transparent; color: var(--text-secondary);
+            font-family: 'Afacad Flux', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+        }
+        .fmt-btn.selected { border-color: var(--text-primary); color: var(--text-primary); background: var(--bg-surface-hover); }
+        .modal-actions { display: flex; gap: 0.7rem; margin-top: 0.3rem; }
+        .modal-cancel {
+            flex: 1; padding: 0.7rem; border-radius: 10px;
+            border: 1px solid var(--border-color); background: transparent;
+            color: var(--text-secondary); font-family: 'Afacad Flux', sans-serif; font-size: 0.95rem; cursor: pointer;
+        }
+        .modal-confirm {
+            flex: 2; padding: 0.7rem; border-radius: 10px; border: none;
+            background: var(--text-primary); color: var(--bg-base);
+            font-family: 'Afacad Flux', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+        }
+        .modal-confirm:hover { opacity: 0.85; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ===== LEFT ===== -->
+    <div class="left-section">
+        <div class="header">
+            <div class="logo-section">
+                <h1>VoxLabs</h1>
+                <p>AI Voice Synthesis</p>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="create-tab">Create</button>
+            <button class="tab-btn" id="projects-tab">Projects</button>
+        </div>
+
+        <!-- CREATE panel -->
+        <div class="create-panel" id="create-panel">
+            <div class="text-input-panel">
+                <textarea id="text" placeholder="Enter your text here..."></textarea>
+            </div>
+            <div>
+                <div class="voice-section-title">Select Voice</div>
+                <div class="voice-grid" id="voice-grid"></div>
+            </div>
+        </div>
+
+        <!-- PROJECTS panel (left list) -->
+        <div class="projects-panel" id="projects-panel">
+            <div class="projects-empty" id="projects-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+                <p>No projects yet. Generate audio and click "Add to my project".</p>
+            </div>
+            <div id="projects-list"></div>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT ===== -->
+    <div class="right-section">
+
+        <!-- CREATE-only top controls -->
+        <div id="right-create-content">
+            <div class="control-panel">
+                <div class="control-title">Model Architecture</div>
+                <div class="select-wrapper">
+                    <select id="model">
+                        <option value="KittenML/kitten-tts-nano-0.8" selected>Nano (15M) — Fastest</option>
+                        <option value="KittenML/kitten-tts-micro-0.8">Micro (40M) — Balanced</option>
+                        <option value="KittenML/kitten-tts-mini-0.8">Mini (80M) — Highest Quality</option>
+                        <option value="KittenML/kitten-tts-nano-0.8-int8">Nano int8 (15M) — Edge Optimized</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-panel" style="margin-top:1.5rem">
+                <div class="control-title">Speech Pacing</div>
+                <div class="slider-wrapper">
+                    <input type="range" id="speed" min="0.5" max="2.0" step="0.1" value="1.0">
+                    <span class="slider-val" id="speed-val">1.0x</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROJECTS-only top content -->
+        <div id="right-projects-content">
+            <div class="proj-stats-card">
+                <div>
+                    <div class="proj-stat-big" id="stat-count">0</div>
+                    <div class="proj-stat-label">Clips Saved</div>
+                </div>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.4">
+                    <path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- ALWAYS visible: Audio Output / Now Playing -->
+        <div class="control-panel visualizer-section">
+            <div class="control-title" id="audio-output-title">Audio Output</div>
+
+            <div class="audio-wave" id="wave-container"></div>
+
+            <!-- Now Playing info shown in projects mode -->
+            <div class="now-playing-info" id="now-playing-info">
+                <div class="np-name" id="np-name">—</div>
+                <div class="np-meta" id="np-meta"></div>
+                <div class="np-download-row">
+                    <button class="np-dl-btn" id="np-dl-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+
+            <div class="playback-controls">
+                <button class="play-pause-btn" id="play-pause-btn">
+                    <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg id="pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+                <div class="time-display">
+                    <span id="current-time">0:00</span> / <span id="duration-time">0:00</span>
+                </div>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- CREATE-only actions inside visualizer -->
+            <div id="right-create-actions">
+                <div class="download-section">
+                    <button id="download-wav-btn" class="download-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        WAV
+                    </button>
+                    <button id="download-mp3-btn" class="download-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        MP3
+                    </button>
+                </div>
+                <button class="add-project-btn" id="add-project-btn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    Add to my project
+                </button>
+            </div>
+        </div>
+
+        <!-- CREATE-only footer -->
+        <div id="right-create-footer">
+            <div class="error-msg" id="error-msg"></div>
+            <div class="generate-btn-container">
+                <button class="btn-wrapper" id="generate-btn">
+                    <div class="btn-inner">
+                        <div class="btn-icon">
+                            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M64,48L64,48h-8V32h8c8.836,0,16-7.164,16-16S72.836,0,64,0c-8.837,0-16,7.164-16,16v8H32v-8
+                                c0-8.836-7.164-16-16-16S0,7.164,0,16s7.164,16,16,16h8v16h-8l0,0l0,0C7.164,48,0,55.164,0,64s7.164,16,16,16
+                                c8.837,0,16-7.164,16-16l0,0v-8h16v7.98c0,0.008-0.001,0.014-0.001,0.02c0,8.836,7.164,16,16,16s16-7.164,16-16
+                                S72.836,48.002,64,48z M64,8c4.418,0,8,3.582,8,8s-3.582,8-8,8h-8v-8C56,11.582,59.582,8,64,8z M8,16c0-4.418,3.582-8,8-8
+                                s8,3.582,8,8v8h-8C11.582,24,8,20.417,8,16z M16,72c-4.418,0-8-3.582-8-8s3.582-8,8-8l0,0h8v8C24,68.418,20.418,72,16,72z
+                                M32,48V32h16v16H32z M64,72c-4.418,0-8-3.582-8-8l0,0v-8h7.999c4.418,0,8,3.582,8,8S68.418,72,64,72z"/>
+                            </svg>
+                        </div>
+                        <span class="btn-text" id="generate-btn-text">Generate Voice</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <h3>Add to Project</h3>
+        <div class="modal-field">
+            <label>Project Name</label>
+            <input type="text" id="modal-project-name" placeholder="My voice clip...">
+        </div>
+        <div class="modal-field">
+            <label>Save Format</label>
+            <div class="modal-formats">
+                <button class="fmt-btn selected" id="fmt-wav">WAV</button>
+                <button class="fmt-btn" id="fmt-mp3">MP3</button>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-cancel" id="modal-cancel">Cancel</button>
+            <button class="modal-confirm" id="modal-confirm">Save to Projects</button>
+        </div>
+    </div>
+</div>
+
+<audio id="audio-player"></audio>
+
+<script>
+// ==================== THEME ====================
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon   = document.getElementById('theme-icon');
+const moonSvg = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+const sunSvg  = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+themeToggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('light-mode');
+    const isLight = document.documentElement.classList.contains('light-mode');
+    themeIcon.innerHTML = isLight ? moonSvg : sunSvg;
+    document.body.style.backgroundColor = isLight ? '#f0f0f0' : '';
+});
+
+// ==================== VOICES ====================
+const voices = [
+    { id: 'Bella',  gender: 'Female', tone: 'Warm & Conversational' },
+    { id: 'Jasper', gender: 'Male',   tone: 'Deep & Authoritative' },
+    { id: 'Luna',   gender: 'Female', tone: 'Joyful & Energetic' },
+    { id: 'Bruno',  gender: 'Male',   tone: 'Calm & Professional' },
+    { id: 'Rosie',  gender: 'Female', tone: 'Soft & Soothing' },
+    { id: 'Hugo',   gender: 'Male',   tone: 'Raspy & Expressive' },
+    { id: 'Kiki',   gender: 'Female', tone: 'Bright & Playful' },
+    { id: 'Leo',    gender: 'Male',   tone: 'Friendly & Upbeat' }
+];
+let selectedVoice = 'Jasper';
+const voiceGrid = document.getElementById('voice-grid');
+
+function renderVoices() {
+    voiceGrid.innerHTML = '';
+    voices.forEach(v => {
+        const card = document.createElement('div');
+        card.className = `voice-card ${v.id === selectedVoice ? 'active' : ''}`;
+        card.onclick = () => { selectedVoice = v.id; renderVoices(); };
+        card.innerHTML = `
+            <div class="voice-header">
+                <span class="voice-name">${v.id}</span>
+                <span class="voice-gender">${v.gender}</span>
+            </div>
+            <div class="voice-desc">${v.tone}</div>`;
+        voiceGrid.appendChild(card);
+    });
+}
+renderVoices();
+
+// ==================== WAVE BARS ====================
+const waveContainer = document.getElementById('wave-container');
+const NUM_BARS = 55;
+const bars = [];
+
+(function buildBars() {
+    const mid = NUM_BARS / 2;
+    for (let i = 0; i < NUM_BARS; i++) {
+        const bar = document.createElement('div');
+        bar.classList.add('bar');
+        const dist   = Math.abs(i - mid);
+        const jitter = Math.random() * 20 - 10;
+        const h = Math.max(10, 120 - (dist / mid) * 110 + jitter);
+        bar.style.height = h + 'px';
+        // Randomize so bars don't bounce in sync
+        bar.style.animationDelay    = (Math.random()).toFixed(2) + 's';
+        bar.style.animationDuration = (Math.random() * 0.8 + 0.7).toFixed(2) + 's';
+        waveContainer.appendChild(bar);
+        bars.push(bar);
+    }
+})();
+
+function startWave() { waveContainer.classList.add('playing'); }
+function stopWave()  { waveContainer.classList.remove('playing'); }
+
+// ==================== AUDIO PLAYER ====================
+const audioPlayer    = document.getElementById('audio-player');
+const playPauseBtn   = document.getElementById('play-pause-btn');
+const playIcon       = document.getElementById('play-icon');
+const pauseIcon      = document.getElementById('pause-icon');
+const currentTimeEl  = document.getElementById('current-time');
+const durationTimeEl = document.getElementById('duration-time');
+const progressBar    = document.getElementById('progress-bar');
+const progressFill   = document.getElementById('progress-fill');
+
+function formatTime(s) {
+    if (!s || isNaN(s)) return '0:00';
+    return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+}
+
+playPauseBtn.addEventListener('click', () => {
+    if (audioPlayer.paused) audioPlayer.play();
+    else audioPlayer.pause();
+});
+
+audioPlayer.addEventListener('play',  () => { playIcon.style.display = 'none';  pauseIcon.style.display = 'block'; startWave(); });
+audioPlayer.addEventListener('pause', () => { playIcon.style.display = 'block'; pauseIcon.style.display = 'none';  stopWave();  });
+audioPlayer.addEventListener('ended', () => { playIcon.style.display = 'block'; pauseIcon.style.display = 'none';  stopWave();  });
+
+audioPlayer.addEventListener('timeupdate', () => {
+    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+    if (audioPlayer.duration)
+        progressFill.style.width = (audioPlayer.currentTime / audioPlayer.duration * 100) + '%';
+});
+audioPlayer.addEventListener('loadedmetadata', () => { durationTimeEl.textContent = formatTime(audioPlayer.duration); });
+progressBar.addEventListener('click', e => {
+    const r = progressBar.getBoundingClientRect();
+    audioPlayer.currentTime = ((e.clientX - r.left) / r.width) * audioPlayer.duration;
+});
+
+// ==================== SYNTHESIS ====================
+const speedSlider     = document.getElementById('speed');
+const speedVal        = document.getElementById('speed-val');
+const generateBtn     = document.getElementById('generate-btn');
+const generateBtnText = document.getElementById('generate-btn-text');
+const errorMsg        = document.getElementById('error-msg');
+const downloadWavBtn  = document.getElementById('download-wav-btn');
+const downloadMp3Btn  = document.getElementById('download-mp3-btn');
+const addProjectBtn   = document.getElementById('add-project-btn');
+
+speedSlider.addEventListener('input', e => {
+    speedVal.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+});
+
+let currentWavBlob = null;
+let currentMeta    = {};
+let lastAudioUrl   = null;
+
+async function synthesize(format) {
+    return fetch('http://localhost:8000/api/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            text:       document.getElementById('text').value.trim(),
+            model:      document.getElementById('model').value,
+            voice:      selectedVoice,
+            speed:      parseFloat(speedSlider.value),
+            clean_text: true,
+            format
+        })
+    });
+}
+
+async function downloadAudio(format) {
+    try {
+        downloadWavBtn.disabled = downloadMp3Btn.disabled = true;
+        const r = await synthesize(format);
+        if (!r.ok) throw new Error(`Server error: ${r.status}`);
+        triggerDownload(await r.blob(), `voxlabs-${Date.now()}.${format}`);
+    } catch(e) {
+        errorMsg.textContent = `Download failed: ${e.message}`;
+    } finally {
+        downloadWavBtn.disabled = downloadMp3Btn.disabled = false;
+    }
+}
+
+function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+downloadWavBtn.addEventListener('click', () => downloadAudio('wav'));
+downloadMp3Btn.addEventListener('click', () => downloadAudio('mp3'));
+
+generateBtn.addEventListener('click', async () => {
+    const text = document.getElementById('text').value.trim();
+    if (!text) { errorMsg.textContent = "Please enter some text to synthesize."; return; }
+
+    generateBtn.disabled = true;
+    generateBtnText.textContent = 'Generating...';
+    errorMsg.textContent = '';
+    stopWave();
+
+    try {
+        const r = await synthesize('wav');
+        if (!r.ok) {
+            const msg = await r.text();
+            throw new Error(msg || `Server error: ${r.status}`);
+        }
+        const audioBlob = await r.blob();
+        currentWavBlob = audioBlob;
+        currentMeta    = { text, voice: selectedVoice };
+        addProjectBtn.disabled = false;
+
+        if (lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+        lastAudioUrl = URL.createObjectURL(audioBlob);
+        audioPlayer.src = lastAudioUrl;
+        audioPlayer.play().catch(e => console.log("Autoplay blocked:", e));
+
+    } catch(e) {
+        errorMsg.textContent = `Error: ${e.message}`;
+    } finally {
+        generateBtn.disabled = false;
+        generateBtnText.textContent = 'Generate Voice';
+    }
+});
+
+// ==================== TABS ====================
+const createPanel   = document.getElementById('create-panel');
+const projectsPanel = document.getElementById('projects-panel');
+const audioTitle    = document.getElementById('audio-output-title');
+
+document.getElementById('create-tab').addEventListener('click', () => {
+    document.getElementById('create-tab').classList.add('active');
+    document.getElementById('projects-tab').classList.remove('active');
+    createPanel.classList.remove('hidden');
+    projectsPanel.classList.remove('active');
+    document.body.classList.remove('projects-mode');
+    audioTitle.textContent = 'Audio Output';
+});
+
+document.getElementById('projects-tab').addEventListener('click', () => {
+    document.getElementById('projects-tab').classList.add('active');
+    document.getElementById('create-tab').classList.remove('active');
+    createPanel.classList.add('hidden');
+    projectsPanel.classList.add('active');
+    document.body.classList.add('projects-mode');
+    audioTitle.textContent = 'Now Playing';
+    updateProjectStats();
+    renderProjects();
+});
+
+// ==================== PROJECTS ====================
+const modalOverlay   = document.getElementById('modal-overlay');
+const modalCancel    = document.getElementById('modal-cancel');
+const modalConfirm   = document.getElementById('modal-confirm');
+const modalName      = document.getElementById('modal-project-name');
+const fmtWav         = document.getElementById('fmt-wav');
+const fmtMp3         = document.getElementById('fmt-mp3');
+const projectsEmpty  = document.getElementById('projects-empty');
+const projectsList   = document.getElementById('projects-list');
+const nowPlayingInfo = document.getElementById('now-playing-info');
+const npName         = document.getElementById('np-name');
+const npMeta         = document.getElementById('np-meta');
+const npDlBtn        = document.getElementById('np-dl-btn');
+
+let selectedFmt     = 'wav';
+let projects        = JSON.parse(localStorage.getItem('voxlabs_projects') || '[]');
+let activeProjectId = null;
+let activeProjectData = null; // { data, format, name } for download
+
+fmtWav.addEventListener('click', () => { selectedFmt = 'wav'; fmtWav.classList.add('selected'); fmtMp3.classList.remove('selected'); });
+fmtMp3.addEventListener('click', () => { selectedFmt = 'mp3'; fmtMp3.classList.add('selected'); fmtWav.classList.remove('selected'); });
+
+addProjectBtn.addEventListener('click', () => {
+    modalName.value = '';
+    selectedFmt = 'wav';
+    fmtWav.classList.add('selected');
+    fmtMp3.classList.remove('selected');
+    modalOverlay.classList.add('open');
+    setTimeout(() => modalName.focus(), 100);
+});
+modalCancel.addEventListener('click', () => modalOverlay.classList.remove('open'));
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+modalConfirm.addEventListener('click', async () => {
+    const name = modalName.value.trim() || 'Untitled';
+    if (!currentWavBlob) return;
+
+    modalConfirm.textContent = 'Saving...';
+    modalConfirm.disabled    = true;
+
+    let blob = currentWavBlob;
+    let mime = 'audio/wav';
+    let fmt  = selectedFmt;
+
+    if (selectedFmt === 'mp3') {
+        try {
+            const r = await fetch('http://localhost:8000/api/synthesize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: currentMeta.text || '', voice: currentMeta.voice || 'Jasper', speed: parseFloat(speedSlider.value), clean_text: true, format: 'mp3' })
+            });
+            if (r.ok) { blob = await r.blob(); mime = 'audio/mpeg'; }
+        } catch(e) { fmt = 'wav'; }
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        projects.unshift({
+            id: Date.now(), name, format: fmt, mime,
+            data: reader.result,
+            voice: currentMeta.voice || 'Jasper',
+            text:  (currentMeta.text || '').slice(0, 80),
+            date:  new Date().toLocaleDateString()
+        });
+        localStorage.setItem('voxlabs_projects', JSON.stringify(projects));
+        modalOverlay.classList.remove('open');
+        modalConfirm.textContent = 'Save to Projects';
+        modalConfirm.disabled    = false;
+        const pt = document.getElementById('projects-tab');
+        pt.style.color = '#00ffcc';
+        setTimeout(() => pt.style.color = '', 1200);
+    };
+    reader.readAsDataURL(blob);
+});
+
+// Download currently-playing project from the Now Playing panel
+npDlBtn.addEventListener('click', () => {
+    if (!activeProjectData) return;
+    triggerDownload(
+        dataURLtoBlob(activeProjectData.data, activeProjectData.mime),
+        `${activeProjectData.name}.${activeProjectData.format}`
+    );
+});
+
+function dataURLtoBlob(dataURL, mime) {
+    const arr = dataURL.split(',');
+    const bstr = atob(arr[1]);
+    const u8 = new Uint8Array(bstr.length);
+    for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+    return new Blob([u8], { type: mime });
+}
+
+function updateProjectStats() {
+    document.getElementById('stat-count').textContent = projects.length;
+}
+
+function renderProjects() {
+    projectsEmpty.style.display = projects.length > 0 ? 'none' : 'flex';
+    projectsList.innerHTML = '';
+    projects.forEach(p => {
+        const card = document.createElement('div');
+        card.className = `project-card ${p.id === activeProjectId ? 'playing' : ''}`;
+        card.innerHTML = `
+            <button class="project-play-btn" title="Play">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="project-card-info">
+                <div class="project-card-name">${p.name}</div>
+                <div class="project-card-meta">${p.format.toUpperCase()} · ${p.voice} · ${p.date}</div>
+            </div>
+            <button class="project-icon-btn" title="Download">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="project-icon-btn delete" title="Delete">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>`;
+
+        // Play
+        card.querySelector('.project-play-btn').addEventListener('click', () => {
+            activeProjectId   = p.id;
+            activeProjectData = p;
+            audioPlayer.src   = p.data;
+            npName.textContent = p.name;
+            npMeta.textContent = `${p.format.toUpperCase()} · ${p.voice} · ${p.date}`;
+            nowPlayingInfo.classList.add('has-track');
+            audioPlayer.play().catch(e => console.log("Play blocked:", e));
+            renderProjects();
+        });
+
+        // Download from card
+        const btns = card.querySelectorAll('.project-icon-btn');
+        btns[0].addEventListener('click', () => {
+            triggerDownload(
+                dataURLtoBlob(p.data, p.mime),
+                `${p.name}.${p.format}`
+            );
+        });
+
+        // Delete
+        btns[1].addEventListener('click', () => {
+            if (activeProjectId === p.id) {
+                activeProjectId = null; activeProjectData = null;
+                audioPlayer.pause();
+                nowPlayingInfo.classList.remove('has-track');
+            }
+            projects = projects.filter(x => x.id !== p.id);
+            localStorage.setItem('voxlabs_projects', JSON.stringify(projects));
+            updateProjectStats();
+            renderProjects();
+        });
+
+        projectsList.appendChild(card);
+    });
+}
+
+// ==================== MODEL READINESS ====================
+function setGenerateEnabled(ready) {
+    generateBtn.disabled = !ready;
+    generateBtnText.textContent = ready ? 'Generate Voice' : 'Loading model…';
+}
+
+async function pollHealth() {
+    try {
+        const data = await fetch('http://localhost:8000/health').then(r => r.json());
+        if (data.model_ready) { setGenerateEnabled(true); errorMsg.textContent = ''; return; }
+        if (data.error)       { errorMsg.textContent = `Backend error: ${data.error}`; }
+    } catch(e) { /* not up yet */ }
+    setTimeout(pollHealth, 1000);
+}
+
+setGenerateEnabled(false);
+pollHealth();
+</script>
+
+</body>
+</html>
